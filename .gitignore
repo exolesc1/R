@@ -6,6 +6,8 @@
 #ADderal
 /[Bb]uild
 *.sln
+**/Output
+**.vcxproj
 
 # User-specific files
 *.rsuser

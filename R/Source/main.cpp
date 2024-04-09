@@ -1,51 +1,67 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include "glm/glm.hpp"
+#include "ImageWriter.h"
+#include "Ray.h"
 
-using namespace std;
+glm::vec3 ray_color(const Ray& r) {
+    glm::vec3 unitDirection = glm::normalize(r.Direction());
+    float a = 0.5f * (unitDirection.y + 1.0);
+    return (1.0f - a) * glm::vec3 (1.0f, 1.0f, 1.0f) + a * glm::vec3(0.5f, 0.7f, 1.0f);
+}
 
-#include "Log.h"
-
-
-
-int main() {
+int main() 
+{
 	 
+	// image
 
-	//// Image
-
-	//int image_width = 256;
-	//int image_height = 256;
-
-	//string filepath = "output/render.ppm";
-	//ofstream file(filepath);
-
-	//// Render
-
-	//file << "P3\n" << image_width << ' ' << image_height << "\n255\n";
-	//cout.precision(3);
-
-	//for (int j = 0; j < image_height; ++j) {
-	//    cout << "progress: " << static_cast<float>(1 + j) / image_height * 100.f << "%\n";
-	//    for (int i = 0; i < image_width; ++i) {
-	//        auto r = double(i) / (image_width - 1);
-	//        auto g = double(j) / (image_height - 1);
-	//        auto b = 0;
-
-	//        int ir = static_cast<int>(255.999 * r);
-	//        int ig = static_cast<int>(255.999 * g);
-	//        int ib = static_cast<int>(255.999 * b);
-
-	//        file << ir << ' ' << ig << ' ' << ib << '\n';
-	//    }
-	//}
-	//cout << "Done!\n";
-	//file.close();
+	int ImageWidth = 1280;
+	int imageHeight = 720;
+	float aspectRatio = static_cast<float>(ImageWidth) / imageHeight;
 
 
+	// Viewport widths less than one are ok since they are real valued.
+	float viewportHeight = 2.f;
+	float viewportWidth = viewportHeight * aspectRatio;
+
+	glm::vec3 cameraOrigin(0.f, 0.f, 0.f);
+	glm::vec3 cameraDirection(0.f, 0.0f, 1.f );
+
+	float focalLength = 1.f;
+
+	glm::vec3 viewportDirectionX(viewportWidth, 0, 0);
+	glm::vec3 viewportDirectionY(0, -viewportHeight, 0);
+
+	glm::vec3 deltaX = viewportDirectionX / static_cast<float>(ImageWidth);
+	glm::vec3 deltaY = viewportDirectionY / static_cast<float>(imageHeight);
+
+	glm::vec3 viewportTopLeftPixelCenter = cameraOrigin + (cameraDirection * focalLength) - (viewportDirectionY / 2.f) - (viewportDirectionX / 2.f) + (deltaX / 2.f) + (deltaY / 2.f);
+
+	
 
 
+	ImageWriter image("output/render.ppm", ImageWidth, imageHeight);
 
+	
+	std::cout.precision(3);
 
+	for (int j = 0; j < imageHeight; ++j) {
+	    std::cout << "progress: " << static_cast<float>(1 + j) / imageHeight * 100.f << "%\n";
+	    for (int i = 0; i < ImageWidth; ++i) {
+			auto pixelCenter = viewportTopLeftPixelCenter + (static_cast<float>(i) * deltaX) + (static_cast<float>(j) * deltaY);
+			auto rayDirection = pixelCenter - cameraOrigin ;
+			Ray ray(cameraOrigin, rayDirection);
+			
+			glm::vec3 iColor = ray_color(ray);
+			glm::uvec3 color = {static_cast<int>(255.999) * iColor.x, static_cast<int>(255.999) * iColor.y, static_cast<int>(255.999) * iColor.z};
+
+			image.Push(color);
+		}
+
+	    
+	}
+	std::cout << "done!\n";
 
 
 

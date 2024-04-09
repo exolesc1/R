@@ -1,4 +1,5 @@
 project "R"
+	debugdir "%{tempPath}"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
@@ -14,6 +15,7 @@ project "R"
 
 	includedirs
 	{
+		"%{IncludeDir.glm}",
 	}
 
 	filter "system:windows"
